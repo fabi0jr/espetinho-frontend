@@ -9,6 +9,8 @@ export const ordersApi = {
 
   create: (tableId: string) => api.post<Order>('/orders', { tableId }),
 
+  remove: (orderId: string) => api.delete(`/orders/${orderId}`),
+
   addItem: (
     orderId: string,
     data: { menuItemId: string; quantity: number; note?: string },
