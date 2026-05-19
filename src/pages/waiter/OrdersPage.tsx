@@ -88,6 +88,20 @@ export function OrdersPage() {
     }));
   }
 
+  async function handleRemoveItem(orderId: string, itemId: string) {
+    setError('');
+    try {
+      await ordersApi.removeItem(orderId, itemId);
+      setTableOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, items: o.items.filter((i) => i.id !== itemId) } : o,
+        ),
+      );
+    } catch {
+      setError('Erro ao remover item');
+    }
+  }
+
   async function handleAddItem(orderId: string) {
     const form = itemForms[orderId] ?? emptyForm();
     if (!form.menuItemId) return;
@@ -247,6 +261,16 @@ export function OrdersPage() {
                                 <span>{item.quantity}× {item.menuItem.name}</span>
                                 <span>R$ {(Number(item.unitPrice) * item.quantity).toFixed(2)}</span>
                                 {item.note && <span className="item-note">{item.note}</span>}
+                                {order.status === 'ABERTO' && (
+                                  <button
+                                    className="btn-danger btn-sm"
+                                    style={{ marginLeft: 'auto', flexShrink: 0 }}
+                                    onClick={() => handleRemoveItem(order.id, item.id)}
+                                    title="Remover item"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
                               </div>
                             ))}
                           </div>

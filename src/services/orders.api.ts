@@ -11,6 +11,9 @@ export const ordersApi = {
 
   remove: (orderId: string) => api.delete(`/orders/${orderId}`),
 
+  removeItem: (orderId: string, itemId: string) =>
+    api.delete(`/orders/${orderId}/items/${itemId}`),
+
   addItem: (
     orderId: string,
     data: { menuItemId: string; quantity: number; note?: string },
