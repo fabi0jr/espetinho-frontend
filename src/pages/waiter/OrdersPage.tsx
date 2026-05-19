@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { tablesApi } from '../../services/tables.api';
 import { ordersApi } from '../../services/orders.api';
 import { menuApi } from '../../services/menu.api';
@@ -56,6 +57,10 @@ export function OrdersPage() {
   useSocket({
     onOrderCreated: () => { loadTables(); if (selectedTableId) loadTableOrders(selectedTableId); },
     onOrderSent: () => { if (selectedTableId) loadTableOrders(selectedTableId); },
+    onOrderReady: ({ tableNumber }) => {
+      if (selectedTableId) loadTableOrders(selectedTableId);
+      toast.success(`Mesa ${tableNumber} — pedido pronto para retirar!`);
+    },
     onOrderClosed: () => { loadTables(); if (selectedTableId) loadTableOrders(selectedTableId); },
   });
 

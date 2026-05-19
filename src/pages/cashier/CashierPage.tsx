@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { ordersApi } from '../../services/orders.api';
 import { useSocket } from '../../hooks/useSocket';
 import type { Order } from '../../types/models';
@@ -22,7 +23,10 @@ export function CashierPage() {
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
   useSocket({
-    onOrderReady: () => loadOrders(),
+    onOrderReady: ({ tableNumber }) => {
+      loadOrders();
+      toast.success(`Mesa ${tableNumber} — pedido pronto para fechar!`);
+    },
     onOrderClosed: () => loadOrders(),
   });
 

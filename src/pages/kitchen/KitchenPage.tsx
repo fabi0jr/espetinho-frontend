@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { ordersApi } from '../../services/orders.api';
 import { useSocket } from '../../hooks/useSocket';
 import type { Order } from '../../types/models';
@@ -22,7 +23,10 @@ export function KitchenPage() {
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
   useSocket({
-    onOrderSent: () => loadOrders(),
+    onOrderSent: ({ tableNumber }) => {
+      loadOrders();
+      toast.info(`Mesa ${tableNumber} — novo pedido para preparar`);
+    },
     onOrderClosed: () => loadOrders(),
   });
 
