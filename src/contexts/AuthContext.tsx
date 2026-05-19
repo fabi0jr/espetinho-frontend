@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: me.id,
           name: me.name,
           email: me.email,
-          role: me.role as User['role'],
+          roles: me.roles as User['roles'],
           mustChangePassword: me.mustChangePassword,
         });
       }

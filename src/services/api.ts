@@ -25,7 +25,7 @@ export const authApi = {
     api.post('/auth/logout'),
 
   me: () =>
-    api.get<{ id: string; name: string; email: string; role: string; mustChangePassword: boolean }>('/auth/me'),
+    api.get<{ id: string; name: string; email: string; roles: string[]; mustChangePassword: boolean }>('/auth/me'),
 
   changePassword: (password: string, confirmPassword: string) =>
     api.patch('/auth/change-password', { password, confirmPassword }),
