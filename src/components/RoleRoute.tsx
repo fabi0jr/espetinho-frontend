@@ -11,6 +11,6 @@ interface RoleRouteProps {
 export function RoleRoute({ children, roles }: RoleRouteProps) {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
-  if (!user || !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  if (!user || !user.roles.some((r) => roles.includes(r))) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }

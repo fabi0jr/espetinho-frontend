@@ -9,12 +9,13 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    if (user.role === 'GARCOM')     navigate('/waiter/orders', { replace: true });
-    else if (user.role === 'COZINHEIRO') navigate('/kitchen', { replace: true });
-    else if (user.role === 'CAIXA') navigate('/cashier', { replace: true });
+    if (user.roles.includes('ADMIN')) return;
+    if (user.roles.includes('GARCOM'))          navigate('/waiter/orders', { replace: true });
+    else if (user.roles.includes('COZINHEIRO')) navigate('/kitchen', { replace: true });
+    else if (user.roles.includes('CAIXA'))      navigate('/cashier', { replace: true });
   }, [user, navigate]);
 
-  if (!user || user.role !== 'ADMIN') return null;
+  if (!user || !user.roles.includes('ADMIN')) return null;
 
   return (
     <div className="page-wrapper">

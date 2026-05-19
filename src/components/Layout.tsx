@@ -26,18 +26,18 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard',     icon: LayoutDashboard, label: 'Painel',   roles: ['ADMIN'] },
-  { to: '/admin/menu',    icon: BookOpen,         label: 'Cardápio', roles: ['ADMIN'] },
-  { to: '/admin/tables',  icon: Grid3X3,          label: 'Mesas',    roles: ['ADMIN'] },
-  { to: '/waiter/orders', icon: ClipboardList,    label: 'Pedidos',  roles: ['ADMIN', 'GARCOM'] },
-  { to: '/kitchen',       icon: ChefHat,          label: 'Cozinha',  roles: ['ADMIN', 'COZINHEIRO'] },
+  { to: '/dashboard',     icon: LayoutDashboard, label: 'Painel',      roles: ['ADMIN'] },
+  { to: '/admin/menu',    icon: BookOpen,         label: 'Cardápio',    roles: ['ADMIN'] },
+  { to: '/admin/tables',  icon: Grid3X3,          label: 'Mesas',       roles: ['ADMIN'] },
+  { to: '/waiter/orders', icon: ClipboardList,    label: 'Pedidos',     roles: ['ADMIN', 'GARCOM'] },
+  { to: '/kitchen',       icon: ChefHat,          label: 'Cozinha',     roles: ['ADMIN', 'COZINHEIRO'] },
   { to: '/cashier',       icon: Receipt,          label: 'Caixa',       roles: ['ADMIN', 'CAIXA'] },
-  { to: '/reports',       icon: BarChart2,         label: 'Relatórios',  roles: ['ADMIN', 'CAIXA'] },
-  { to: '/admin/users',  icon: Users,             label: 'Usuários',    roles: ['ADMIN'] },
+  { to: '/reports',       icon: BarChart2,        label: 'Relatórios',  roles: ['ADMIN', 'CAIXA'] },
+  { to: '/admin/users',   icon: Users,            label: 'Usuários',    roles: ['ADMIN'] },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
-  ADMIN:      'Administrador',
+  ADMIN:      'Admin',
   GARCOM:     'Garçom',
   COZINHEIRO: 'Cozinheiro',
   CAIXA:      'Caixa',
@@ -48,21 +48,22 @@ export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
-  // Fecha a sidebar ao navegar no mobile
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const items = NAV_ITEMS.filter((item) => user && item.roles.includes(user.role));
+  const items = NAV_ITEMS.filter(
+    (item) => user && user.roles.some((r) => item.roles.includes(r)),
+  );
+
+  const roleLabel = user?.roles.map((r) => ROLE_LABELS[r] ?? r).join(' · ');
 
   return (
     <div className="app-shell">
-      {/* Overlay escuro no mobile */}
       {mobileOpen && (
         <div className="sidebar-overlay" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={`sidebar${mobileOpen ? ' sidebar--open' : ''}`}>
         <div className="sidebar-brand">
           <Flame size={22} className="brand-flame" strokeWidth={2} />
@@ -94,9 +95,7 @@ export function Layout() {
               <span className="user-display-name">
                 {user?.name || user?.email?.split('@')[0]}
               </span>
-              <span className="user-display-role">
-                {ROLE_LABELS[user?.role ?? ''] ?? user?.role}
-              </span>
+              <span className="user-display-role">{roleLabel}</span>
             </div>
           </div>
           <button className="logout-btn" onClick={logout} title="Sair">
@@ -105,9 +104,7 @@ export function Layout() {
         </div>
       </aside>
 
-      {/* Área principal */}
       <div className="main-area">
-        {/* Topbar — visível apenas no mobile */}
         <header className="topbar">
           <button
             className="topbar-menu-btn"
