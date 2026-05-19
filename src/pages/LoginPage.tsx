@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Flame } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
@@ -15,7 +16,6 @@ export function LoginPage() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
       await login({ email, password });
       navigate('/dashboard', { replace: true });
@@ -27,10 +27,12 @@ export function LoginPage() {
   }
 
   return (
-    <div className="login-container">
+    <div className="login-page">
       <div className="login-card">
-        <div className="login-logo">
-          <span className="logo-icon">🍢</span>
+        <div className="login-brand">
+          <div className="login-brand-icon">
+            <Flame size={26} strokeWidth={2} />
+          </div>
           <h1>Espetinho do Bastuca</h1>
           <p>Sistema de Gestão</p>
         </div>
@@ -64,7 +66,7 @@ export function LoginPage() {
 
           {error && <p className="error-message">{error}</p>}
 
-          <button type="submit" disabled={isLoading} className="login-button">
+          <button type="submit" disabled={isLoading} className="login-btn">
             {isLoading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>

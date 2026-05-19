@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { tablesApi } from '../../services/tables.api';
 import { ordersApi } from '../../services/orders.api';
 import { menuApi } from '../../services/menu.api';
@@ -22,7 +21,6 @@ type ItemForm = { menuItemId: string; quantity: string; note: string };
 const emptyForm = (): ItemForm => ({ menuItemId: '', quantity: '1', note: '' });
 
 export function OrdersPage() {
-  const { user, logout } = useAuth();
   const [tables, setTables] = useState<Table[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
@@ -167,20 +165,10 @@ export function OrdersPage() {
     tableOrders.every((o) => o.status === 'ABERTO');
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="header-brand"><span>🍢</span><h2>Pedidos</h2></div>
-        <div className="header-user">
-          <span className="user-role-badge">{user?.role}</span>
-          <span className="user-name">{user?.name || user?.email}</span>
-          <button className="logout-button" onClick={logout}>Sair</button>
-        </div>
-      </header>
+    <div className="page-wrapper">
+      <h1 className="page-title">Pedidos</h1>
 
-      <main
-        className="dashboard-main"
-        style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '1.5rem', alignItems: 'start' }}
-      >
+      <div className="orders-page-grid">
         {/* Coluna de mesas */}
         <div>
           <h3 style={{ marginBottom: '1rem' }}>Mesas</h3>
@@ -219,7 +207,7 @@ export function OrdersPage() {
               {error && <p className="error-message" style={{ marginBottom: '0.75rem' }}>{error}</p>}
 
               {tableOrders.length === 0 ? (
-                <div className="page-card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
+                <div className="page-card" style={{ textAlign: 'center', color: 'var(--text-2)', padding: '2rem' }}>
                   Nenhum pedido em andamento.<br />Clique em "Novo Pedido" para começar.
                 </div>
               ) : (
@@ -230,7 +218,7 @@ export function OrdersPage() {
                       <div key={order.id} className="page-card">
                         {/* Cabeçalho */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>
                             {new Date(order.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -251,7 +239,7 @@ export function OrdersPage() {
 
                         {/* Lista de itens */}
                         {(order.items ?? []).length === 0 ? (
-                          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                          <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
                             Nenhum item adicionado
                           </p>
                         ) : (
@@ -279,7 +267,7 @@ export function OrdersPage() {
                         {/* Formulário — só para rascunhos */}
                         {order.status === 'ABERTO' && (
                           <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '0.75rem' }}>
-                            <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+                            <p style={{ fontSize: '0.72rem', color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
                               Adicionar item
                             </p>
                             <select
@@ -336,12 +324,12 @@ export function OrdersPage() {
               )}
             </>
           ) : (
-            <div className="page-card" style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>
+            <div className="page-card" style={{ color: 'var(--text-2)', textAlign: 'center', padding: '2rem' }}>
               Selecione uma mesa para gerenciar pedidos
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
