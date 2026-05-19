@@ -258,3 +258,300 @@ body {
   font-size: 0.95rem;
   line-height: 1.6;
 }
+
+/* ── NAVEGAÇÃO ADMIN ──────────────────────────────── */
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  max-width: 700px;
+}
+
+.nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+
+.nav-card:hover {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 1px var(--orange-glow);
+}
+
+.nav-icon { font-size: 2rem; }
+
+.nav-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.nav-card p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* ── FORMULÁRIOS INLINE ──────────────────────────── */
+
+.page-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+
+.field-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  padding: 0.55rem 0.8rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.field-input:focus { border-color: var(--orange); }
+.field-input option { background: #1a1a1a; }
+
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── BOTÕES ──────────────────────────────────────── */
+
+.btn-primary {
+  padding: 0.55rem 1.1rem;
+  background: linear-gradient(135deg, var(--orange), var(--orange-light));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  box-shadow: 0 4px 16px var(--orange-glow);
+  white-space: nowrap;
+}
+
+.btn-primary:hover:not(:disabled) { opacity: 0.88; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.25); }
+.btn-ghost.btn-active { color: var(--orange); border-color: var(--orange); }
+
+.btn-danger {
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 60, 60, 0.12);
+  border: 1px solid rgba(255, 60, 60, 0.25);
+  border-radius: var(--radius-sm);
+  color: #ff6060;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover { background: rgba(255, 60, 60, 0.22); }
+.btn-sm { padding: 0.25rem 0.55rem; font-size: 0.75rem; }
+
+/* ── MESAS ──────────────────────────────────────── */
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+}
+
+.table-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 1rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  text-align: center;
+  width: 100%;
+  color: var(--text-primary);
+}
+
+.table-card:not(button) { cursor: default; }
+button.table-card:hover { border-color: rgba(255,255,255,0.25); }
+.table-selected { border-color: var(--orange) !important; box-shadow: 0 0 0 1px var(--orange-glow); }
+
+.table-number { font-size: 1rem; font-weight: 700; }
+
+.table-ocupada { border-color: rgba(255, 107, 0, 0.3); }
+
+.status-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-livre {
+  background: rgba(60, 200, 100, 0.12);
+  color: #4ccc70;
+  border: 1px solid rgba(60, 200, 100, 0.25);
+}
+
+.status-ocupada {
+  background: var(--orange-glow);
+  color: var(--orange-light);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+/* ── CARDÁPIO ───────────────────────────────────── */
+
+.category-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.item-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+}
+
+.item-disabled { opacity: 0.45; }
+
+.item-image {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.item-info { display: flex; flex-direction: column; flex: 1; }
+.item-name { font-weight: 600; font-size: 0.9rem; }
+.item-price { color: var(--orange); font-size: 0.85rem; font-weight: 600; }
+.item-desc { color: var(--text-secondary); font-size: 0.78rem; margin-top: 0.15rem; }
+
+.item-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+/* ── PEDIDOS (cozinha / caixa) ──────────────────── */
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.order-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.order-card-ready { border-color: rgba(255, 107, 0, 0.3); }
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-table { font-size: 1.1rem; font-weight: 700; }
+.order-time { font-size: 0.8rem; color: var(--text-secondary); }
+.order-total { font-size: 1rem; font-weight: 700; color: var(--orange); }
+
+.order-items-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.order-items-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  flex-wrap: wrap;
+}
+
+.order-qty {
+  font-weight: 700;
+  color: var(--orange);
+  min-width: 24px;
+}
+
+.item-note {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  width: 100%;
+  padding-left: 28px;
+}
+
+.btn-ready { width: 100%; justify-content: center; }
+.btn-close { width: 100%; justify-content: center; background: linear-gradient(135deg, #2ecc71, #27ae60); }
+
+/* ── PEDIDO — linha de item ─────────────────────── */
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-wrap: wrap;
+}
