@@ -12,7 +12,7 @@ export function KitchenPage() {
 
   const loadOrders = useCallback(async () => {
     try {
-      const { data } = await ordersApi.list({ status: 'ABERTO' });
+      const { data } = await ordersApi.list({ status: 'ENVIADO' });
       setOrders(data);
     } catch {
       setError('Erro ao carregar pedidos');
@@ -24,8 +24,7 @@ export function KitchenPage() {
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
   useSocket({
-    onOrderCreated: () => loadOrders(),
-    onItemAdded: () => loadOrders(),
+    onOrderSent: () => loadOrders(),
     onOrderClosed: () => loadOrders(),
   });
 

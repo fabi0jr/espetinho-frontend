@@ -12,12 +12,14 @@ interface ItemAddedPayload {
   tableNumber: number;
   item: { name: string; quantity: number; note: string | null };
 }
+interface OrderSentPayload { orderId: string; tableNumber: number }
 interface OrderReadyPayload { orderId: string; tableNumber: number }
 interface OrderClosedPayload { orderId: string; tableNumber: number }
 
 interface UseSocketCallbacks {
   onOrderCreated?: (data: OrderCreatedPayload) => void;
   onItemAdded?: (data: ItemAddedPayload) => void;
+  onOrderSent?: (data: OrderSentPayload) => void;
   onOrderReady?: (data: OrderReadyPayload) => void;
   onOrderClosed?: (data: OrderClosedPayload) => void;
 }
@@ -35,6 +37,7 @@ export function useSocket(callbacks: UseSocketCallbacks) {
 
     if (callbacks.onOrderCreated) socket.on('order.created', callbacks.onOrderCreated);
     if (callbacks.onItemAdded) socket.on('order.item_added', callbacks.onItemAdded);
+    if (callbacks.onOrderSent) socket.on('order.sent', callbacks.onOrderSent);
     if (callbacks.onOrderReady) socket.on('order.ready', callbacks.onOrderReady);
     if (callbacks.onOrderClosed) socket.on('order.closed', callbacks.onOrderClosed);
 

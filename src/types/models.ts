@@ -33,7 +33,7 @@ export interface Order {
   id: string;
   tableId: string;
   table: { number: number };
-  status: 'ABERTO' | 'PRONTO' | 'FECHADO';
+  status: 'ABERTO' | 'ENVIADO' | 'PRONTO' | 'FECHADO';
   items: OrderItem[];
   openedById: string;
   closedById: string | null;
