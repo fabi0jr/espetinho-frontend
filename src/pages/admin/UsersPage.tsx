@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { usersApi } from '../../services/users.api';
 import type { UserRecord } from '../../services/users.api';
+import type { Role } from '../../types/auth';
 
-const ROLE_OPTIONS = ['ADMIN', 'GARCOM', 'COZINHEIRO', 'CAIXA'] as const;
+const ROLE_OPTIONS: Role[] = ['ADMIN', 'GARCOM', 'COZINHEIRO', 'CAIXA'];
 
-const ROLE_LABEL: Record<string, string> = {
+const ROLE_LABEL: Record<Role, string> = {
   ADMIN: 'Admin',
   GARCOM: 'Garçom',
   COZINHEIRO: 'Cozinheiro',
@@ -14,17 +15,61 @@ const ROLE_LABEL: Record<string, string> = {
 
 type Filter = 'all' | 'active' | 'inactive';
 
+function RoleCheckboxes({
+  selected,
+  onChange,
+}: {
+  selected: Role[];
+  onChange: (roles: Role[]) => void;
+}) {
+  function toggle(role: Role) {
+    onChange(
+      selected.includes(role)
+        ? selected.filter((r) => r !== role)
+        : [...selected, role],
+    );
+  }
+  return (
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      {ROLE_OPTIONS.map((r) => (
+        <label
+          key={r}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={selected.includes(r)}
+            onChange={() => toggle(r)}
+          />
+          {ROLE_LABEL[r]}
+        </label>
+      ))}
+    </div>
+  );
+}
+
 export function UsersPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'GARCOM' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    roles: ['GARCOM'] as Role[],
+  });
   const [creating, setCreating] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', email: '', role: '' });
+  const [editForm, setEditForm] = useState({ name: '', email: '', roles: [] as Role[] });
 
   const [resetId, setResetId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -47,12 +92,16 @@ export function UsersPage() {
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
+    if (form.roles.length === 0) {
+      setError('Selecione ao menos um perfil');
+      return;
+    }
     setCreating(true);
     setError('');
     try {
       const { data } = await usersApi.create(form);
       setUsers((prev) => [data, ...prev]);
-      setForm({ name: '', email: '', password: '', role: 'GARCOM' });
+      setForm({ name: '', email: '', password: '', roles: ['GARCOM'] });
     } catch (err: any) {
       setError(err.response?.data?.message ?? 'Erro ao criar usuário');
     } finally {
@@ -62,11 +111,15 @@ export function UsersPage() {
 
   function startEdit(user: UserRecord) {
     setEditingId(user.id);
-    setEditForm({ name: user.name, email: user.email, role: user.role });
+    setEditForm({ name: user.name, email: user.email, roles: user.roles });
     setResetId(null);
   }
 
   async function handleUpdate(id: string) {
+    if (editForm.roles.length === 0) {
+      setError('Selecione ao menos um perfil');
+      return;
+    }
     setError('');
     try {
       const { data } = await usersApi.update(id, editForm);
@@ -119,44 +172,49 @@ export function UsersPage() {
         </p>
         <form
           onSubmit={handleCreate}
-          style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'flex-end' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
         >
-          <input
-            className="field-input"
-            placeholder="Nome"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-          <input
-            className="field-input"
-            type="email"
-            placeholder="E-mail"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-          />
-          <input
-            className="field-input"
-            type="password"
-            placeholder="Senha inicial"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-            minLength={6}
-          />
-          <select
-            className="field-input"
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-          >
-            {ROLE_OPTIONS.map((r) => (
-              <option key={r} value={r}>{ROLE_LABEL[r]}</option>
-            ))}
-          </select>
-          <button type="submit" className="btn-primary" disabled={creating}>
-            {creating ? 'Criando...' : '+ Criar'}
-          </button>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <input
+              className="field-input"
+              placeholder="Nome"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+            <input
+              className="field-input"
+              type="email"
+              placeholder="E-mail"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+            <input
+              className="field-input"
+              type="password"
+              placeholder="Senha inicial"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              minLength={6}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Perfis:</span>
+            <RoleCheckboxes
+              selected={form.roles}
+              onChange={(roles) => setForm({ ...form, roles })}
+            />
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={creating}
+              style={{ marginLeft: 'auto' }}
+            >
+              {creating ? 'Criando...' : '+ Criar'}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -192,9 +250,17 @@ export function UsersPage() {
                     {user.email}
                   </span>
                 </div>
-                <span className="status-badge" style={{ background: 'var(--glass-3)', color: 'var(--blue)', border: '1px solid var(--blue-border)' }}>
-                  {ROLE_LABEL[user.role]}
-                </span>
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                  {user.roles.map((r) => (
+                    <span
+                      key={r}
+                      className="status-badge"
+                      style={{ background: 'var(--glass-3)', color: 'var(--blue)', border: '1px solid var(--blue-border)' }}
+                    >
+                      {ROLE_LABEL[r]}
+                    </span>
+                  ))}
+                </div>
                 <span className={`status-badge ${user.isActive ? 'status-livre' : 'status-fechado'}`}>
                   {user.isActive ? 'Ativo' : 'Inativo'}
                 </span>
@@ -239,35 +305,38 @@ export function UsersPage() {
                   paddingTop: '0.75rem',
                   marginTop: '0.75rem',
                   display: 'flex',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap',
-                  alignItems: 'flex-end',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
                 }}>
-                  <input
-                    className="field-input"
-                    placeholder="Nome"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  />
-                  <input
-                    className="field-input"
-                    type="email"
-                    placeholder="E-mail"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  />
-                  <select
-                    className="field-input"
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  >
-                    {ROLE_OPTIONS.map((r) => (
-                      <option key={r} value={r}>{ROLE_LABEL[r]}</option>
-                    ))}
-                  </select>
-                  <button className="btn-primary btn-sm" onClick={() => handleUpdate(user.id)}>
-                    Salvar
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <input
+                      className="field-input"
+                      placeholder="Nome"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    />
+                    <input
+                      className="field-input"
+                      type="email"
+                      placeholder="E-mail"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>Perfis:</span>
+                    <RoleCheckboxes
+                      selected={editForm.roles}
+                      onChange={(roles) => setEditForm({ ...editForm, roles })}
+                    />
+                    <button
+                      className="btn-primary btn-sm"
+                      onClick={() => handleUpdate(user.id)}
+                      style={{ marginLeft: 'auto' }}
+                    >
+                      Salvar
+                    </button>
+                  </div>
                 </div>
               )}
 

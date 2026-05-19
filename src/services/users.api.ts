@@ -1,10 +1,11 @@
 import api from './api';
+import type { Role } from '../types/auth';
 
 export interface UserRecord {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'GARCOM' | 'COZINHEIRO' | 'CAIXA';
+  roles: Role[];
   isActive: boolean;
   mustChangePassword: boolean;
   createdAt: string;
@@ -16,10 +17,10 @@ export const usersApi = {
       `/users${isActive !== undefined ? `?isActive=${isActive}` : ''}`,
     ),
 
-  create: (dto: { name: string; email: string; password: string; role: string }) =>
+  create: (dto: { name: string; email: string; password: string; roles: Role[] }) =>
     api.post<UserRecord>('/users', dto),
 
-  update: (id: string, dto: { name?: string; email?: string; role?: string }) =>
+  update: (id: string, dto: { name?: string; email?: string; roles?: Role[] }) =>
     api.patch<UserRecord>(`/users/${id}`, dto),
 
   activate: (id: string) =>
