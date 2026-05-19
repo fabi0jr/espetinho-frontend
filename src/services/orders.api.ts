@@ -1,5 +1,11 @@
 import api from './api';
-import type { Order } from '../types/models';
+import type { Order, PaymentMethod } from '../types/models';
+
+export interface PaymentInput {
+  method: PaymentMethod;
+  amount: number;
+  received?: number;
+}
 
 export const ordersApi = {
   list: (params?: { status?: string; tableId?: string }) =>
@@ -23,5 +29,6 @@ export const ordersApi = {
 
   markReady: (orderId: string) => api.patch(`/orders/${orderId}/ready`),
 
-  close: (orderId: string) => api.patch(`/orders/${orderId}/close`),
+  close: (orderId: string, payments: PaymentInput[]) =>
+    api.patch<Order>(`/orders/${orderId}/close`, { payments }),
 };

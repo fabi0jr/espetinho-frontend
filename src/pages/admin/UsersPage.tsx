@@ -243,14 +243,12 @@ export function UsersPage() {
           {users.map((user) => (
             <div key={user.id} className="page-card">
               {/* Linha principal */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontWeight: 600 }}>{user.name}</span>
-                  <span style={{ color: 'var(--text-2)', fontSize: '0.82rem', marginLeft: '0.5rem' }}>
-                    {user.email}
-                  </span>
+              <div className="user-card-main">
+                <div className="user-card-info">
+                  <span className="user-card-name">{user.name}</span>
+                  <span className="user-card-email">{user.email}</span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                <div className="user-card-badges">
                   {user.roles.map((r) => (
                     <span
                       key={r}
@@ -260,16 +258,16 @@ export function UsersPage() {
                       {ROLE_LABEL[r]}
                     </span>
                   ))}
-                </div>
-                <span className={`status-badge ${user.isActive ? 'status-livre' : 'status-fechado'}`}>
-                  {user.isActive ? 'Ativo' : 'Inativo'}
-                </span>
-                {user.mustChangePassword && (
-                  <span className="status-badge status-enviado" style={{ fontSize: '0.6rem' }}>
-                    Troca senha pendente
+                  <span className={`status-badge ${user.isActive ? 'status-livre' : 'status-fechado'}`}>
+                    {user.isActive ? 'Ativo' : 'Inativo'}
                   </span>
-                )}
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  {user.mustChangePassword && (
+                    <span className="status-badge status-enviado" style={{ fontSize: '0.6rem' }}>
+                      Troca senha pendente
+                    </span>
+                  )}
+                </div>
+                <div className="user-card-actions">
                   <button
                     className="btn-ghost btn-sm"
                     onClick={() => {

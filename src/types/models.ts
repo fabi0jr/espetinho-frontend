@@ -1,3 +1,14 @@
+export type PaymentMethod = 'DINHEIRO' | 'PIX' | 'DEBITO' | 'CREDITO';
+
+export interface Payment {
+  id: string;
+  orderId: string;
+  method: PaymentMethod;
+  amount: number;
+  received: number | null;
+  createdAt: string;
+}
+
 export interface Table {
   id: string;
   number: number;
@@ -35,6 +46,7 @@ export interface Order {
   table: { number: number };
   status: 'ABERTO' | 'ENVIADO' | 'PRONTO' | 'FECHADO';
   items: OrderItem[];
+  payments?: Payment[];
   openedById: string;
   closedById: string | null;
   openedAt: string;

@@ -9,7 +9,7 @@ import type { Table, Order, MenuItem } from '../../types/models';
 const STATUS_LABEL: Record<string, string> = {
   ABERTO: 'Rascunho',
   ENVIADO: 'Na cozinha',
-  PRONTO: 'Pronto',
+  PRONTO: 'Pronto ✓',
 };
 
 const STATUS_CLASS: Record<string, string> = {
@@ -18,17 +18,111 @@ const STATUS_CLASS: Record<string, string> = {
   PRONTO: 'status-pronto',
 };
 
-type ItemForm = { menuItemId: string; quantity: string; note: string };
-const emptyForm = (): ItemForm => ({ menuItemId: '', quantity: '1', note: '' });
+type ItemForm = { menuItemId: string; quantity: number; note: string };
+const emptyForm = (): ItemForm => ({ menuItemId: '', quantity: 1, note: '' });
 
+/* ── Stepper de quantidade ─────────────────────────── */
+function QtyStepper({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="qty-stepper">
+      <button
+        type="button"
+        className="qty-btn"
+        onClick={() => onChange(Math.max(1, value - 1))}
+        disabled={value <= 1}
+      >
+        −
+      </button>
+      <span className="qty-value">{value}</span>
+      <button type="button" className="qty-btn" onClick={() => onChange(value + 1)}>
+        +
+      </button>
+    </div>
+  );
+}
+
+/* ── Picker visual de itens do cardápio ────────────── */
+function MenuPicker({
+  menuItems,
+  form,
+  onUpdate,
+  onAdd,
+  adding,
+}: {
+  menuItems: MenuItem[];
+  form: ItemForm;
+  onUpdate: (field: keyof ItemForm, value: string | number) => void;
+  onAdd: () => void;
+  adding: boolean;
+}) {
+  const categories = [...new Set(menuItems.map((i) => i.category))].sort();
+  const selected = menuItems.find((i) => i.id === form.menuItemId);
+
+  return (
+    <div className="menu-picker">
+      <div className="menu-picker-scroll">
+        {categories.map((cat) => (
+          <div key={cat} className="menu-picker-section">
+            <span className="menu-picker-cat">{cat}</span>
+            <div className="menu-picker-chips">
+              {menuItems
+                .filter((i) => i.category === cat)
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`menu-chip ${form.menuItemId === item.id ? 'menu-chip--selected' : ''}`}
+                    onClick={() =>
+                      onUpdate('menuItemId', form.menuItemId === item.id ? '' : item.id)
+                    }
+                  >
+                    <span className="menu-chip-name">{item.name}</span>
+                    <span className="menu-chip-price">
+                      R$ {Number(item.price).toFixed(2)}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {selected && (
+        <div className="menu-picker-action">
+          <QtyStepper
+            value={form.quantity}
+            onChange={(v) => onUpdate('quantity', v)}
+          />
+          <input
+            className="field-input menu-picker-note"
+            placeholder="Observação (opcional)"
+            value={form.note}
+            onChange={(e) => onUpdate('note', e.target.value)}
+          />
+          <button className="btn-primary" onClick={onAdd} disabled={adding}>
+            {adding ? '...' : '+ Adicionar'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Página principal ──────────────────────────────── */
 export function OrdersPage() {
   const [tables, setTables] = useState<Table[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [tableOrders, setTableOrders] = useState<Order[]>([]);
-  // Formulário de item indexado por orderId — cada rascunho tem o seu
   const [itemForms, setItemForms] = useState<Record<string, ItemForm>>({});
-  const [addingItem, setAddingItem] = useState<string | null>(null); // orderId sendo processado
+  const [addingItem, setAddingItem] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const loadTables = useCallback(async () => {
@@ -51,17 +145,24 @@ export function OrdersPage() {
     loadMenuItems();
   }, [loadTables, loadMenuItems]);
 
-  // Ref para usar dentro do useSocket sem causar re-subscribe
   const selectedTableId = selectedTable?.id;
 
   useSocket({
-    onOrderCreated: () => { loadTables(); if (selectedTableId) loadTableOrders(selectedTableId); },
-    onOrderSent: () => { if (selectedTableId) loadTableOrders(selectedTableId); },
+    onOrderCreated: () => {
+      loadTables();
+      if (selectedTableId) loadTableOrders(selectedTableId);
+    },
+    onOrderSent: () => {
+      if (selectedTableId) loadTableOrders(selectedTableId);
+    },
     onOrderReady: ({ tableNumber }) => {
       if (selectedTableId) loadTableOrders(selectedTableId);
       toast.success(`Mesa ${tableNumber} — pedido pronto para retirar!`);
     },
-    onOrderClosed: () => { loadTables(); if (selectedTableId) loadTableOrders(selectedTableId); },
+    onOrderClosed: () => {
+      loadTables();
+      if (selectedTableId) loadTableOrders(selectedTableId);
+    },
   });
 
   async function handleSelectTable(table: Table) {
@@ -76,15 +177,14 @@ export function OrdersPage() {
     setError('');
     try {
       const { data } = await ordersApi.create(selectedTable.id);
-      await loadTables();
-      setTableOrders((prev) => [data, ...prev]);
+      await Promise.all([loadTables(), loadTableOrders(selectedTable.id)]);
       setItemForms((prev) => ({ ...prev, [data.id]: emptyForm() }));
     } catch {
       setError('Erro ao abrir pedido');
     }
   }
 
-  function updateForm(orderId: string, field: keyof ItemForm, value: string) {
+  function updateForm(orderId: string, field: keyof ItemForm, value: string | number) {
     setItemForms((prev) => ({
       ...prev,
       [orderId]: { ...(prev[orderId] ?? emptyForm()), [field]: value },
@@ -113,7 +213,7 @@ export function OrdersPage() {
     try {
       await ordersApi.addItem(orderId, {
         menuItemId: form.menuItemId,
-        quantity: parseInt(form.quantity),
+        quantity: form.quantity,
         note: form.note || undefined,
       });
       const { data } = await ordersApi.get(orderId);
@@ -127,6 +227,7 @@ export function OrdersPage() {
   }
 
   async function handleSendToKitchen(orderId: string) {
+    setSendingId(orderId);
     setError('');
     try {
       await ordersApi.sendToKitchen(orderId);
@@ -135,6 +236,8 @@ export function OrdersPage() {
       );
     } catch (err: any) {
       setError(err.response?.data?.message ?? 'Erro ao enviar pedido para a cozinha');
+    } finally {
+      setSendingId(null);
     }
   }
 
@@ -152,7 +255,11 @@ export function OrdersPage() {
   }
 
   async function handleRelease() {
-    if (!selectedTable || !confirm('Liberar mesa sem consumo? Os rascunhos serão descartados.')) return;
+    if (
+      !selectedTable ||
+      !confirm('Liberar mesa sem consumo? Os rascunhos serão descartados.')
+    )
+      return;
     setError('');
     try {
       await tablesApi.release(selectedTable.id);
@@ -164,69 +271,96 @@ export function OrdersPage() {
     }
   }
 
-  // Mesa pode ser liberada pelo garçom se não houver pedidos ENVIADO ou PRONTO
   const canRelease =
     selectedTable?.status === 'OCUPADA' &&
     tableOrders.every((o) => o.status === 'ABERTO');
+
+  const tableButtons = tables.map((table) => (
+    <button
+      key={table.id}
+      className={[
+        'waiter-table-btn',
+        `waiter-table-btn--${table.status.toLowerCase()}`,
+        selectedTable?.id === table.id ? 'waiter-table-btn--selected' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      onClick={() => handleSelectTable(table)}
+    >
+      <span className="waiter-table-num">{table.number}</span>
+      <span className={`status-badge status-${table.status.toLowerCase()}`}>
+        {table.status === 'LIVRE' ? 'Livre' : 'Ocupada'}
+      </span>
+    </button>
+  ));
 
   return (
     <div className="page-wrapper">
       <h1 className="page-title">Pedidos</h1>
 
-      <div className="orders-page-grid">
-        {/* Coluna de mesas */}
-        <div>
-          <h3 style={{ marginBottom: '1rem' }}>Mesas</h3>
-          <div className="tables-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-            {tables.map((table) => (
-              <button
-                key={table.id}
-                className={`table-card table-${table.status.toLowerCase()} ${selectedTable?.id === table.id ? 'table-selected' : ''}`}
-                onClick={() => handleSelectTable(table)}
-              >
-                <span className="table-number">Mesa {table.number}</span>
-                <span className={`status-badge status-${table.status.toLowerCase()}`}>
-                  {table.status}
-                </span>
-              </button>
-            ))}
-          </div>
+      {!selectedTable ? (
+        /* ── Sem mesa selecionada: mesas em destaque ── */
+        <div className="waiter-select-view">
+          <p className="waiter-col-label">Selecione uma mesa</p>
+          <div className="waiter-tables-full">{tableButtons}</div>
         </div>
+      ) : (
+        /* ── Mesa selecionada: layout duas colunas ── */
+        <div className="orders-page-grid">
+          <div className="waiter-tables-col">
+            <p className="waiter-col-label">Mesas</p>
+            <div className="waiter-tables-grid">{tableButtons}</div>
+          </div>
 
-        {/* Painel de pedidos */}
-        <div>
-          {selectedTable ? (
+          <div className="waiter-orders-col">
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <h3>Mesa {selectedTable.number}</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="waiter-panel-header">
+                <h3 className="waiter-panel-title">Mesa {selectedTable.number}</h3>
+                <div className="waiter-panel-actions">
                   {canRelease && (
-                    <button className="btn-ghost" onClick={handleRelease} style={{ color: '#ff6060', borderColor: 'rgba(255,60,60,0.3)' }}>
+                    <button className="btn-ghost btn-release" onClick={handleRelease}>
                       Liberar Mesa
                     </button>
                   )}
-                  <button className="btn-primary" onClick={handleOpenOrder}>+ Novo Pedido</button>
+                  <button className="btn-primary" onClick={handleOpenOrder}>
+                    + Novo Pedido
+                  </button>
                 </div>
               </div>
 
-              {error && <p className="error-message" style={{ marginBottom: '0.75rem' }}>{error}</p>}
+              {error && <p className="error-message waiter-error">{error}</p>}
 
               {tableOrders.length === 0 ? (
-                <div className="page-card" style={{ textAlign: 'center', color: 'var(--text-2)', padding: '2rem' }}>
-                  Nenhum pedido em andamento.<br />Clique em "Novo Pedido" para começar.
+                <div className="waiter-empty-panel">
+                  Nenhum pedido em andamento.
+                  <br />
+                  Clique em "Novo Pedido" para começar.
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div className="waiter-orders-list">
                   {tableOrders.map((order) => {
                     const form = itemForms[order.id] ?? emptyForm();
+                    const isReady = order.status === 'PRONTO';
                     return (
-                      <div key={order.id} className="page-card">
-                        {/* Cabeçalho */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>
-                            {new Date(order.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      <div
+                        key={order.id}
+                        className={[
+                          'waiter-order-card',
+                          isReady ? 'waiter-order-card--pronto' : '',
+                          order.status === 'ENVIADO' ? 'waiter-order-card--enviado' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      >
+                        {/* Cabeçalho do card */}
+                        <div className="waiter-order-header">
+                          <span className="waiter-order-time">
+                            {new Date(order.openedAt).toLocaleTimeString('pt-BR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </span>
-                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <div className="waiter-order-header-right">
                             <span className={`status-badge ${STATUS_CLASS[order.status]}`}>
                               {STATUS_LABEL[order.status] ?? order.status}
                             </span>
@@ -242,22 +376,31 @@ export function OrdersPage() {
                           </div>
                         </div>
 
+                        {/* Banner de pronto */}
+                        {isReady && (
+                          <div className="waiter-ready-banner">
+                            ✓ Pedido pronto — pode retirar!
+                          </div>
+                        )}
+
                         {/* Lista de itens */}
                         {(order.items ?? []).length === 0 ? (
-                          <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-                            Nenhum item adicionado
-                          </p>
+                          <p className="waiter-empty-items">Nenhum item adicionado</p>
                         ) : (
-                          <div style={{ marginBottom: '0.75rem' }}>
+                          <div className="waiter-items-list">
                             {order.items.map((item) => (
                               <div key={item.id} className="order-item-row">
-                                <span>{item.quantity}× {item.menuItem.name}</span>
-                                <span>R$ {(Number(item.unitPrice) * item.quantity).toFixed(2)}</span>
-                                {item.note && <span className="item-note">{item.note}</span>}
+                                <span className="order-qty">{item.quantity}×</span>
+                                <span>{item.menuItem.name}</span>
+                                <span className="waiter-item-price">
+                                  R$ {(Number(item.unitPrice) * item.quantity).toFixed(2)}
+                                </span>
+                                {item.note && (
+                                  <span className="item-note">{item.note}</span>
+                                )}
                                 {order.status === 'ABERTO' && (
                                   <button
-                                    className="btn-danger btn-sm"
-                                    style={{ marginLeft: 'auto', flexShrink: 0 }}
+                                    className="btn-danger btn-sm waiter-remove-item"
                                     onClick={() => handleRemoveItem(order.id, item.id)}
                                     title="Remover item"
                                   >
@@ -269,56 +412,27 @@ export function OrdersPage() {
                           </div>
                         )}
 
-                        {/* Formulário — só para rascunhos */}
+                        {/* Formulário — só rascunhos */}
                         {order.status === 'ABERTO' && (
-                          <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '0.75rem' }}>
-                            <p style={{ fontSize: '0.72rem', color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                              Adicionar item
-                            </p>
-                            <select
-                              className="field-input"
-                              value={form.menuItemId}
-                              onChange={(e) => updateForm(order.id, 'menuItemId', e.target.value)}
-                              style={{ width: '100%', marginBottom: '0.5rem' }}
-                            >
-                              <option value="">Selecione um item do cardápio</option>
-                              {menuItems.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                  {m.name} — R$ {Number(m.price).toFixed(2)}
-                                </option>
-                              ))}
-                            </select>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                              <input
-                                className="field-input"
-                                type="number"
-                                min="1"
-                                value={form.quantity}
-                                onChange={(e) => updateForm(order.id, 'quantity', e.target.value)}
-                                style={{ width: '70px' }}
-                              />
-                              <input
-                                className="field-input"
-                                placeholder="Observação (opcional)"
-                                value={form.note}
-                                onChange={(e) => updateForm(order.id, 'note', e.target.value)}
-                                style={{ flex: 1 }}
-                              />
-                              <button
-                                className="btn-ghost"
-                                onClick={() => handleAddItem(order.id)}
-                                disabled={addingItem === order.id || !form.menuItemId}
-                              >
-                                {addingItem === order.id ? '...' : '+ Adicionar'}
-                              </button>
-                            </div>
+                          <div className="waiter-add-section">
+                            <p className="waiter-add-label">Adicionar item</p>
+                            <MenuPicker
+                              menuItems={menuItems}
+                              form={form}
+                              onUpdate={(field, value) => updateForm(order.id, field, value)}
+                              onAdd={() => handleAddItem(order.id)}
+                              adding={addingItem === order.id}
+                            />
                             <button
-                              className="btn-primary"
-                              style={{ width: '100%' }}
+                              className="btn-send-kitchen"
                               onClick={() => handleSendToKitchen(order.id)}
-                              disabled={(order.items ?? []).length === 0}
+                              disabled={
+                                (order.items ?? []).length === 0 || sendingId === order.id
+                              }
                             >
-                              Enviar para Cozinha →
+                              {sendingId === order.id
+                                ? 'Enviando...'
+                                : 'Enviar para Cozinha →'}
                             </button>
                           </div>
                         )}
@@ -328,13 +442,9 @@ export function OrdersPage() {
                 </div>
               )}
             </>
-          ) : (
-            <div className="page-card" style={{ color: 'var(--text-2)', textAlign: 'center', padding: '2rem' }}>
-              Selecione uma mesa para gerenciar pedidos
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
