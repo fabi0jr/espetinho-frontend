@@ -11,6 +11,8 @@ import { OrdersPage } from './pages/waiter/OrdersPage';
 import { KitchenPage } from './pages/kitchen/KitchenPage';
 import { CashierPage } from './pages/cashier/CashierPage';
 import { ReportsPage } from './pages/reports/ReportsPage';
+import { UsersPage } from './pages/admin/UsersPage';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import './styles/global.css';
 
 // Protege as rotas autenticadas e fornece o Layout com sidebar
@@ -18,6 +20,7 @@ function AuthLayout() {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <ChangePasswordModal />;
   return <Layout />;
 }
 
@@ -53,6 +56,10 @@ export default function App() {
             <Route
               path="/reports"
               element={<RoleRoute roles={['ADMIN', 'CAIXA']}><ReportsPage /></RoleRoute>}
+            />
+            <Route
+              path="/admin/users"
+              element={<RoleRoute roles={['ADMIN']}><UsersPage /></RoleRoute>}
             />
           </Route>
 

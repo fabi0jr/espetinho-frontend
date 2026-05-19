@@ -8,6 +8,7 @@ import {
   ChefHat,
   Receipt,
   BarChart2,
+  Users,
   LogOut,
   Menu,
   X,
@@ -32,6 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/kitchen',       icon: ChefHat,          label: 'Cozinha',  roles: ['ADMIN', 'COZINHEIRO'] },
   { to: '/cashier',       icon: Receipt,          label: 'Caixa',       roles: ['ADMIN', 'CAIXA'] },
   { to: '/reports',       icon: BarChart2,         label: 'Relatórios',  roles: ['ADMIN', 'CAIXA'] },
+  { to: '/admin/users',  icon: Users,             label: 'Usuários',    roles: ['ADMIN'] },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
