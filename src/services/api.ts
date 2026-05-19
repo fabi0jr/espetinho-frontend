@@ -29,6 +29,12 @@ export const authApi = {
 
   changePassword: (password: string, confirmPassword: string) =>
     api.patch('/auth/change-password', { password, confirmPassword }),
+
+  updateMe: (dto: { name?: string; email?: string }) =>
+    api.patch<{ id: string; name: string; email: string; roles: string[]; mustChangePassword: boolean }>('/auth/me', dto),
+
+  updatePassword: (dto: { currentPassword: string; password: string; confirmPassword: string }) =>
+    api.patch<{ message: string }>('/auth/update-password', dto),
 };
 
 export default api;

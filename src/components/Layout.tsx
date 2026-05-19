@@ -16,6 +16,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { ProfileModal } from './ProfileModal';
 import type { Role } from '../types/auth';
 
 interface NavItem {
@@ -46,6 +47,7 @@ const ROLE_LABELS: Record<string, string> = {
 export function Layout() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -87,7 +89,12 @@ export function Layout() {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="sidebar-user">
+          <button
+            className="sidebar-user"
+            onClick={() => setProfileOpen(true)}
+            title="Editar perfil"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', flex: 1 }}
+          >
             <div className="avatar">
               <User size={14} strokeWidth={1.8} />
             </div>
@@ -97,11 +104,13 @@ export function Layout() {
               </span>
               <span className="user-display-role">{roleLabel}</span>
             </div>
-          </div>
+          </button>
           <button className="logout-btn" onClick={logout} title="Sair">
             <LogOut size={15} strokeWidth={1.9} />
           </button>
         </div>
+
+        {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
       </aside>
 
       <div className="main-area">
