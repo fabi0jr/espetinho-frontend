@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { FormEvent } from 'react';
 import { X } from 'lucide-react';
 import { authApi } from '../services/api';
@@ -63,7 +64,7 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
     }
   }
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -165,6 +166,7 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
