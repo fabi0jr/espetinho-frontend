@@ -3,10 +3,9 @@ import type { LoginCredentials, LoginResponse, RefreshResponse } from '../types/
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-  withCredentials: true, // envia o cookie HttpOnly de refresh token automaticamente
+  withCredentials: true,
 });
 
-// Interceptor que injeta o access_token em todas as requisições autenticadas
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
@@ -26,7 +25,10 @@ export const authApi = {
     api.post('/auth/logout'),
 
   me: () =>
-    api.get('/auth/me'),
+    api.get<{ id: string; name: string; email: string; role: string; mustChangePassword: boolean }>('/auth/me'),
+
+  changePassword: (password: string, confirmPassword: string) =>
+    api.patch('/auth/change-password', { password, confirmPassword }),
 };
 
 export default api;

@@ -9,6 +9,7 @@ interface AuthContextData {
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (partial: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -17,14 +18,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Ao iniciar a aplicação, tenta renovar a sessão via refresh token (cookie HttpOnly)
   const tryRefresh = useCallback(async () => {
     try {
       const { data } = await authApi.refresh();
       if (data.access_token) {
         localStorage.setItem('access_token', data.access_token);
-        const me = await authApi.me();
-        setUser({ id: me.data.sub, email: me.data.email, role: me.data.role, name: '' });
+        const { data: me } = await authApi.me();
+        setUser({
+          id: me.id,
+          name: me.name,
+          email: me.email,
+          role: me.role as User['role'],
+          mustChangePassword: me.mustChangePassword,
+        });
       }
     } catch {
       localStorage.removeItem('access_token');
@@ -52,9 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateUser = useCallback((partial: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...partial } : null));
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated: !!user, login, logout }}
+      value={{ user, isLoading, isAuthenticated: !!user, login, logout, updateUser }}
     >
       {children}
     </AuthContext.Provider>
