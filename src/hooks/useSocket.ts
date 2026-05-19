@@ -26,6 +26,12 @@ interface UseSocketCallbacks {
 
 export function useSocket(callbacks: UseSocketCallbacks) {
   const socketRef = useRef<Socket | null>(null);
+  const cbRef = useRef(callbacks);
+
+  // Mantém sempre a versão mais recente dos callbacks sem reconectar o socket
+  useEffect(() => {
+    cbRef.current = callbacks;
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -35,14 +41,13 @@ export function useSocket(callbacks: UseSocketCallbacks) {
     );
     socketRef.current = socket;
 
-    if (callbacks.onOrderCreated) socket.on('order.created', callbacks.onOrderCreated);
-    if (callbacks.onItemAdded) socket.on('order.item_added', callbacks.onItemAdded);
-    if (callbacks.onOrderSent) socket.on('order.sent', callbacks.onOrderSent);
-    if (callbacks.onOrderReady) socket.on('order.ready', callbacks.onOrderReady);
-    if (callbacks.onOrderClosed) socket.on('order.closed', callbacks.onOrderClosed);
+    socket.on('order.created',    (d) => cbRef.current.onOrderCreated?.(d));
+    socket.on('order.item_added', (d) => cbRef.current.onItemAdded?.(d));
+    socket.on('order.sent',       (d) => cbRef.current.onOrderSent?.(d));
+    socket.on('order.ready',      (d) => cbRef.current.onOrderReady?.(d));
+    socket.on('order.closed',     (d) => cbRef.current.onOrderClosed?.(d));
 
     return () => { socket.disconnect(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { socket: socketRef.current };

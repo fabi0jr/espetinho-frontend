@@ -13,6 +13,7 @@ import { CashierPage } from './pages/cashier/CashierPage';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { UsersPage } from './pages/admin/UsersPage';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { Toaster } from 'sonner';
 import './styles/global.css';
 
 // Protege as rotas autenticadas e fornece o Layout com sidebar
@@ -27,6 +28,7 @@ function AuthLayout() {
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" richColors />
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
