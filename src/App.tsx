@@ -10,6 +10,7 @@ import { TablesPage } from './pages/admin/TablesPage';
 import { OrdersPage } from './pages/waiter/OrdersPage';
 import { KitchenPage } from './pages/kitchen/KitchenPage';
 import { CashierPage } from './pages/cashier/CashierPage';
+import { ReportsPage } from './pages/reports/ReportsPage';
 import './styles/global.css';
 
 // Protege as rotas autenticadas e fornece o Layout com sidebar
@@ -48,6 +49,10 @@ export default function App() {
             <Route
               path="/cashier"
               element={<RoleRoute roles={['ADMIN', 'CAIXA']}><CashierPage /></RoleRoute>}
+            />
+            <Route
+              path="/reports"
+              element={<RoleRoute roles={['ADMIN', 'CAIXA']}><ReportsPage /></RoleRoute>}
             />
           </Route>
 

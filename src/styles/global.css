@@ -680,6 +680,7 @@ button, input, select, textarea {
 .status-aberto  { background: var(--glass-3); color: var(--text-2); border: 1px solid var(--glass-border); }
 .status-enviado { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
 .status-pronto  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.status-fechado { background: var(--glass-3); color: var(--text-2); border: 1px solid var(--glass-border); }
 
 /* ── MESAS ─────────────────────────────────────── */
 

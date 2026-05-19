@@ -7,6 +7,7 @@ import {
   ClipboardList,
   ChefHat,
   Receipt,
+  BarChart2,
   LogOut,
   Menu,
   X,
@@ -29,7 +30,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/admin/tables',  icon: Grid3X3,          label: 'Mesas',    roles: ['ADMIN'] },
   { to: '/waiter/orders', icon: ClipboardList,    label: 'Pedidos',  roles: ['ADMIN', 'GARCOM'] },
   { to: '/kitchen',       icon: ChefHat,          label: 'Cozinha',  roles: ['ADMIN', 'COZINHEIRO'] },
-  { to: '/cashier',       icon: Receipt,          label: 'Caixa',    roles: ['ADMIN', 'CAIXA'] },
+  { to: '/cashier',       icon: Receipt,          label: 'Caixa',       roles: ['ADMIN', 'CAIXA'] },
+  { to: '/reports',       icon: BarChart2,         label: 'Relatórios',  roles: ['ADMIN', 'CAIXA'] },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
