@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileModal } from './ProfileModal';
+import { InstallPWABanner } from './InstallPWABanner';
 import type { Role } from '../types/auth';
 
 interface NavItem {
@@ -127,6 +128,8 @@ export function Layout() {
             <span>Espetinho do Bastuca</span>
           </div>
         </header>
+
+        <InstallPWABanner />
 
         <main className="page-content">
           <Outlet />

@@ -2159,3 +2159,69 @@ button.table-card:hover {
     width: 100%;
   }
 }
+
+/* ── Install PWA Banner ─────────────────────────────────────── */
+.install-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--glass-2);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: var(--blur);
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.install-banner__text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.install-banner__text strong {
+  color: var(--text-1);
+}
+
+.install-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.install-banner__btn--primary {
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--orange);
+  background: var(--orange-glow);
+  color: var(--orange-2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.install-banner__btn--primary:hover {
+  background: var(--orange-glow-strong);
+}
+
+.install-banner__btn--dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.install-banner__btn--dismiss:hover {
+  background: var(--glass-3);
+  color: var(--text-2);
+}
