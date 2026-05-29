@@ -15,5 +15,5 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd ~/projetos/espetinho-system
+            cd ~/projetos/espetinho
             make deploy-frontend
