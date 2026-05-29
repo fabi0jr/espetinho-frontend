@@ -2225,3 +2225,14 @@ button.table-card:hover {
   background: var(--glass-3);
   color: var(--text-2);
 }
+
+/* ── iOS SAFARI: previne zoom ao focar em inputs ───
+   O Safari iOS faz zoom automático em qualquer input com font-size < 16px.
+   @supports (-webkit-touch-callout: none) identifica exclusivamente iOS Safari,
+   garantindo que o desktop não seja afetado.
+─────────────────────────────────────────────────── */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
