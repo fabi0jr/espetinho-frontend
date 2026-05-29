@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FormEvent } from 'react';
-import { Camera, Eye, EyeOff, Trash2, ImageOff, BookOpen, ChevronDown } from 'lucide-react';
+import { Camera, Eye, EyeOff, Trash2, ImageOff, BookOpen, ChevronDown, QrCode, X, Download, Printer } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import { menuApi } from '../../services/menu.api';
 import type { MenuItem } from '../../types/models';
+
+const CARDAPIO_URL = `${window.location.origin}/cardapio`;
 
 /* ── Combobox de categoria ─────────────────────────── */
 function CategoryCombobox({
@@ -70,6 +73,105 @@ function CategoryCombobox({
   );
 }
 
+/* ── Modal do QR Code ──────────────────────────────── */
+function QrModal({ onClose }: { onClose: () => void }) {
+  const qrRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = useCallback(() => {
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg) return;
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 512;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+
+      const link = document.createElement('a');
+      link.download = 'qrcode-cardapio.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    img.src = url;
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg) return;
+
+    const clonedSvg = svg.cloneNode(true) as SVGElement;
+    clonedSvg.setAttribute('width', '200');
+    clonedSvg.setAttribute('height', '200');
+
+    const win = window.open('', '_blank');
+    if (!win) return;
+
+    const style = win.document.createElement('style');
+    style.textContent =
+      'body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:Georgia,serif;} p{font-size:12px;color:#555;margin-top:12px;}';
+
+    const p = win.document.createElement('p');
+    p.textContent = 'Escaneie para acessar o cardápio';
+
+    win.document.head.appendChild(style);
+    win.document.body.appendChild(clonedSvg);
+    win.document.body.appendChild(p);
+
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 300);
+  }, []);
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+        <div className="modal-header">
+          <h2 className="modal-title">QR Code do Cardápio</h2>
+          <button className="btn-ghost btn-sm btn-icon" onClick={onClose}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <p style={{ color: 'var(--text-2)', fontSize: '0.8rem', marginBottom: '16px', textAlign: 'center' }}>
+          Imprima e coloque nas mesas para os clientes acessarem o cardápio.
+        </p>
+
+        <div ref={qrRef} style={{ display: 'flex', justifyContent: 'center', background: '#fff', padding: '16px', borderRadius: '8px', marginBottom: '12px' }}>
+          <QRCode value={CARDAPIO_URL} size={180} />
+        </div>
+
+        <p style={{ color: 'var(--text-2)', fontSize: '0.72rem', textAlign: 'center', marginBottom: '16px', wordBreak: 'break-all' }}>
+          {CARDAPIO_URL}
+        </p>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn-primary" style={{ flex: 1 }} onClick={handleDownload}>
+            <Download size={14} strokeWidth={2} style={{ marginRight: '6px' }} />
+            Baixar PNG
+          </button>
+          <button className="btn-ghost" style={{ flex: 1 }} onClick={handlePrint}>
+            <Printer size={14} strokeWidth={2} style={{ marginRight: '6px' }} />
+            Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── MenuPage principal ────────────────────────────── */
 export function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +180,7 @@ export function MenuPage() {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { loadItems(); }, []);
@@ -153,7 +256,15 @@ export function MenuPage() {
 
   return (
     <div className="page-wrapper">
-      <h1 className="page-title">Cardápio</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>Cardápio</h1>
+        <button className="btn-ghost btn-sm" onClick={() => setShowQr(true)} title="Gerar QR Code do cardápio">
+          <QrCode size={16} strokeWidth={1.8} style={{ marginRight: '6px' }} />
+          QR Code
+        </button>
+      </div>
+
+      {showQr && <QrModal onClose={() => setShowQr(false)} />}
 
       {error && <p className="error-message">{error}</p>}
 
@@ -243,7 +354,6 @@ export function MenuPage() {
                 {catItems.map((item) => (
                   <div key={item.id} className={`item-card ${!item.isAvailable ? 'item-disabled' : ''}`}>
 
-                    {/* Imagem ou placeholder */}
                     <div className="item-image-wrap">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="item-image" />
