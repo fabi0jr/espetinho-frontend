@@ -250,16 +250,33 @@ function EditMenuItemModal({
               <label className="field-label">Foto <span className="field-optional">(opcional)</span></label>
               <button
                 type="button"
-                className="btn-ghost btn-sm"
-                style={{ justifyContent: 'flex-start', gap: '6px' }}
                 onClick={() => fileRef.current?.click()}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '20px',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px dashed var(--glass-border-strong)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: localFile ? 'var(--text-1)' : 'var(--text-2)',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.16s, background 0.16s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--orange)'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--orange-glow)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--glass-border-strong)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.02)'; }}
               >
-                <Camera size={13} strokeWidth={1.8} />
-                {localFile
-                  ? (localFile.name.length > 20 ? localFile.name.slice(0, 20) + '…' : localFile.name)
-                  : item.imageUrl
-                    ? 'Trocar foto'
-                    : 'Escolher imagem'}
+                <Camera size={20} strokeWidth={1.5} style={{ color: localFile ? 'var(--orange)' : 'var(--text-3)' }} />
+                <span style={{ fontSize: '0.82rem' }}>
+                  {localFile
+                    ? (localFile.name.length > 28 ? localFile.name.slice(0, 28) + '…' : localFile.name)
+                    : item.imageUrl
+                      ? 'Clique para trocar a foto'
+                      : 'Clique para escolher uma imagem'}
+                </span>
               </button>
               <input
                 ref={fileRef}
@@ -484,13 +501,13 @@ export function MenuPage() {
               <label className="field-label">Foto <span className="field-optional">(opcional)</span></label>
               <button
                 type="button"
-                className="btn-ghost btn-sm"
-                style={{ justifyContent: 'flex-start', gap: '6px' }}
+                className="btn-ghost"
+                style={{ justifyContent: 'flex-start', gap: '8px' }}
                 onClick={() => createFileRef.current?.click()}
               >
-                <Camera size={13} strokeWidth={1.8} />
+                <Camera size={15} strokeWidth={1.8} />
                 {createPendingFile
-                  ? (createPendingFile.name.length > 12 ? createPendingFile.name.slice(0, 12) + '…' : createPendingFile.name)
+                  ? (createPendingFile.name.length > 14 ? createPendingFile.name.slice(0, 14) + '…' : createPendingFile.name)
                   : 'Escolher imagem'}
               </button>
             </div>

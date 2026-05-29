@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.ico', 'pwa-*.png', 'maskable-icon-*.png', 'apple-touch-icon-*.png'],
       manifest: {
-        name: 'Espetinho System',
+        name: 'Espetinho do Bastuca',
         short_name: 'Espetinho',
         description: 'Sistema de gestão do restaurante',
         start_url: '/',

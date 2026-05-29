@@ -69,7 +69,7 @@ export function InstallPWABanner() {
         ) : (
           <>
             <Download size={14} />
-            Instale o Espetinho System para acesso rápido
+            Instale o Espetinho do Bastuca para acesso rápido
           </>
         )}
       </span>

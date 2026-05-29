@@ -20,7 +20,7 @@ export function CardapioPage() {
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <h1 style={styles.title}>ESPETINHO SYSTEM</h1>
+        <h1 style={styles.title}>ESPETINHO DO BASTUCA</h1>
         <p style={styles.subtitle}>CARDÁPIO</p>
         <div style={styles.divider} />
       </header>
