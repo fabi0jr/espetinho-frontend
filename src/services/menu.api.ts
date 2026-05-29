@@ -1,7 +1,11 @@
 import api from './api';
+import { publicApi } from './api';
 import type { MenuItem } from '../types/models';
 
 export const menuApi = {
+  listPublic: () =>
+    publicApi.get<MenuItem[]>('/menu/public'),
+
   list: (available?: boolean) =>
     api.get<MenuItem[]>('/menu', {
       params: available !== undefined ? { available } : {},

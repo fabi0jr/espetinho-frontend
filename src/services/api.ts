@@ -14,6 +14,10 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export const publicApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+});
+
 export const authApi = {
   login: (credentials: LoginCredentials) =>
     api.post<LoginResponse>('/auth/login', credentials),
