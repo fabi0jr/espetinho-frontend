@@ -13,6 +13,7 @@ import { CashierPage } from './pages/cashier/CashierPage';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { UsersPage } from './pages/admin/UsersPage';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { CardapioPage } from './pages/public/CardapioPage';
 import { Toaster } from 'sonner';
 import './styles/global.css';
 
@@ -31,6 +32,9 @@ export default function App() {
       <Toaster position="top-right" richColors />
       <AuthProvider>
         <Routes>
+          {/* Rota pública — sem autenticação */}
+          <Route path="/cardapio" element={<CardapioPage />} />
+
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<AuthLayout />}>
