@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FormEvent } from 'react';
-import { Camera, Eye, EyeOff, Trash2, ImageOff, BookOpen, ChevronDown, QrCode, X, Download, Printer } from 'lucide-react';
+import { Camera, Eye, EyeOff, Trash2, ImageOff, BookOpen, ChevronDown, QrCode, X, Download, Printer, Pencil } from 'lucide-react';
 import { QRCode } from 'react-qr-code';
 import { menuApi } from '../../services/menu.api';
 import type { MenuItem } from '../../types/models';
@@ -173,6 +173,117 @@ function QrModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* ── Modal de edição de item ───────────────────────── */
+function EditMenuItemModal({
+  item,
+  form,
+  setForm,
+  submitting,
+  onSave,
+  onClose,
+  categories,
+}: {
+  item: MenuItem;
+  form: { name: string; category: string; price: string; description: string };
+  setForm: (f: { name: string; category: string; price: string; description: string }) => void;
+  submitting: boolean;
+  onSave: (e: FormEvent, file: File | null) => void;
+  onClose: () => void;
+  categories: string[];
+}) {
+  const [localFile, setLocalFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">Editar item</h2>
+          <button className="modal-close-btn" onClick={onClose}>
+            <X size={14} />
+          </button>
+        </div>
+        <form onSubmit={(e) => onSave(e, localFile)}>
+          <div className="modal-body">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="form-field">
+                <label className="field-label">Nome</label>
+                <input
+                  className="field-input"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-field">
+                <label className="field-label">Categoria</label>
+                <CategoryCombobox
+                  value={form.category}
+                  onChange={(v) => setForm({ ...form, category: v })}
+                  suggestions={categories}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="form-field">
+                <label className="field-label">Preço (R$)</label>
+                <input
+                  className="field-input"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-field">
+                <label className="field-label">Descrição <span className="field-optional">(opcional)</span></label>
+                <input
+                  className="field-input"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="form-field">
+              <label className="field-label">Foto <span className="field-optional">(opcional)</span></label>
+              <button
+                type="button"
+                className="btn-ghost btn-sm"
+                style={{ justifyContent: 'flex-start', gap: '6px' }}
+                onClick={() => fileRef.current?.click()}
+              >
+                <Camera size={13} strokeWidth={1.8} />
+                {localFile
+                  ? (localFile.name.length > 20 ? localFile.name.slice(0, 20) + '…' : localFile.name)
+                  : item.imageUrl
+                    ? 'Trocar foto'
+                    : 'Escolher imagem'}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => { if (e.target.files?.[0]) setLocalFile(e.target.files[0]); }}
+              />
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn-ghost modal-btn-cancel" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-primary modal-btn-confirm" disabled={submitting}>
+              {submitting ? 'Salvando...' : 'Salvar alterações'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ── MenuPage principal ────────────────────────────── */
 export function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -180,10 +291,16 @@ export function MenuPage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', description: '', price: '', category: '' });
   const [submitting, setSubmitting] = useState(false);
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Criação — foto pendente
+  const createFileRef = useRef<HTMLInputElement>(null);
+  const [createPendingFile, setCreatePendingFile] = useState<File | null>(null);
+
+  // Edição
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', category: '', price: '', description: '' });
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => { loadItems(); }, []);
 
@@ -211,6 +328,19 @@ export function MenuPage() {
       });
       setItems((prev) => [data, ...prev]);
       setForm({ name: '', description: '', price: '', category: '' });
+      if (createPendingFile) {
+        try {
+          const { data: uploadData } = await menuApi.getUploadUrl(data.id);
+          await menuApi.uploadImage(uploadData.url, createPendingFile);
+          const { data: updated } = await menuApi.update(data.id, { imageUrl: uploadData.imageUrl });
+          setItems((prev) => prev.map((i) => (i.id === data.id ? updated : i)));
+        } catch {
+          setError('Item criado, mas erro ao fazer upload da imagem');
+        } finally {
+          setCreatePendingFile(null);
+          if (createFileRef.current) createFileRef.current.value = '';
+        }
+      }
     } catch {
       setError('Erro ao criar item');
     } finally {
@@ -237,20 +367,41 @@ export function MenuPage() {
     }
   }
 
-  async function handleImageUpload(file: File) {
-    if (!uploadTargetId) return;
-    setUploadingId(uploadTargetId);
+  function openEdit(item: MenuItem) {
+    setEditingItem(item);
+    setEditForm({
+      name: item.name,
+      category: item.category,
+      price: String(item.price),
+      description: item.description ?? '',
+    });
+  }
+
+  async function handleEditSave(e: FormEvent, file: File | null) {
+    e.preventDefault();
+    if (!editingItem) return;
+    setEditSubmitting(true);
+    setError('');
     try {
-      const { data } = await menuApi.getUploadUrl(uploadTargetId);
-      await menuApi.uploadImage(data.url, file);
-      const { data: updated } = await menuApi.update(uploadTargetId, { imageUrl: data.imageUrl });
-      setItems((prev) => prev.map((i) => (i.id === uploadTargetId ? updated : i)));
+      const { data } = await menuApi.update(editingItem.id, {
+        name: editForm.name,
+        category: editForm.category,
+        price: parseFloat(editForm.price),
+        description: editForm.description || undefined,
+      });
+      let updated = data;
+      if (file) {
+        const { data: uploadData } = await menuApi.getUploadUrl(editingItem.id);
+        await menuApi.uploadImage(uploadData.url, file);
+        const { data: withImage } = await menuApi.update(editingItem.id, { imageUrl: uploadData.imageUrl });
+        updated = withImage;
+      }
+      setItems((prev) => prev.map((i) => (i.id === editingItem.id ? updated : i)));
+      setEditingItem(null);
     } catch {
-      setError('Erro ao fazer upload da imagem');
+      setError('Erro ao salvar item');
     } finally {
-      setUploadingId(null);
-      setUploadTargetId(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setEditSubmitting(false);
     }
   }
 
@@ -267,6 +418,18 @@ export function MenuPage() {
       </div>
 
       {showQr && <QrModal onClose={() => setShowQr(false)} />}
+
+      {editingItem && (
+        <EditMenuItemModal
+          item={editingItem}
+          form={editForm}
+          setForm={setEditForm}
+          submitting={editSubmitting}
+          onSave={handleEditSave}
+          onClose={() => setEditingItem(null)}
+          categories={categories}
+        />
+      )}
 
       {error && <p className="error-message">{error}</p>}
 
@@ -317,6 +480,20 @@ export function MenuPage() {
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </div>
+            <div className="form-field form-field--sm">
+              <label className="field-label">Foto <span className="field-optional">(opcional)</span></label>
+              <button
+                type="button"
+                className="btn-ghost btn-sm"
+                style={{ justifyContent: 'flex-start', gap: '6px' }}
+                onClick={() => createFileRef.current?.click()}
+              >
+                <Camera size={13} strokeWidth={1.8} />
+                {createPendingFile
+                  ? (createPendingFile.name.length > 12 ? createPendingFile.name.slice(0, 12) + '…' : createPendingFile.name)
+                  : 'Escolher imagem'}
+              </button>
+            </div>
             <button type="submit" disabled={submitting} className="btn-primary menu-form-submit">
               {submitting ? 'Salvando...' : '+ Adicionar'}
             </button>
@@ -325,11 +502,11 @@ export function MenuPage() {
       </div>
 
       <input
-        ref={fileInputRef}
+        ref={createFileRef}
         type="file"
         accept="image/*"
         style={{ display: 'none' }}
-        onChange={(e) => { if (e.target.files?.[0]) handleImageUpload(e.target.files[0]); }}
+        onChange={(e) => { if (e.target.files?.[0]) setCreatePendingFile(e.target.files[0]); }}
       />
 
       {/* ── Lista de itens ── */}
@@ -380,13 +557,10 @@ export function MenuPage() {
                     <div className="item-actions">
                       <button
                         className="btn-ghost btn-sm btn-icon"
-                        disabled={uploadingId === item.id}
-                        title="Trocar foto"
-                        onClick={() => { setUploadTargetId(item.id); fileInputRef.current?.click(); }}
+                        title="Editar item"
+                        onClick={() => openEdit(item)}
                       >
-                        {uploadingId === item.id
-                          ? <span style={{ fontSize: '0.7rem' }}>...</span>
-                          : <Camera size={14} strokeWidth={1.8} />}
+                        <Pencil size={14} strokeWidth={1.8} />
                       </button>
                       <button
                         className={`btn-ghost btn-sm btn-icon ${!item.isAvailable ? 'btn-active' : ''}`}
