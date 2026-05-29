@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { Camera, Eye, EyeOff, Trash2, ImageOff, BookOpen, ChevronDown, QrCode, X, Download, Printer } from 'lucide-react';
-import QRCode from 'react-qr-code';
+import { QRCode } from 'react-qr-code';
 import { menuApi } from '../../services/menu.api';
 import type { MenuItem } from '../../types/models';
 
@@ -135,8 +135,8 @@ function QrModal({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '320px' }}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '340px' }}>
         <div className="modal-header">
           <h2 className="modal-title">QR Code do Cardápio</h2>
           <button className="btn-ghost btn-sm btn-icon" onClick={onClose}>
@@ -144,27 +144,29 @@ function QrModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        <p style={{ color: 'var(--text-2)', fontSize: '0.8rem', marginBottom: '16px', textAlign: 'center' }}>
-          Imprima e coloque nas mesas para os clientes acessarem o cardápio.
-        </p>
+        <div className="modal-body">
+          <p style={{ color: 'var(--text-2)', fontSize: '0.8rem', textAlign: 'center' }}>
+            Imprima e coloque nas mesas para os clientes acessarem o cardápio.
+          </p>
 
-        <div ref={qrRef} style={{ display: 'flex', justifyContent: 'center', background: '#fff', padding: '16px', borderRadius: '8px', marginBottom: '12px' }}>
-          <QRCode value={CARDAPIO_URL} size={180} />
-        </div>
+          <div ref={qrRef} style={{ display: 'flex', justifyContent: 'center', background: '#fff', padding: '16px', borderRadius: '8px' }}>
+            <QRCode value={CARDAPIO_URL} size={180} />
+          </div>
 
-        <p style={{ color: 'var(--text-2)', fontSize: '0.72rem', textAlign: 'center', marginBottom: '16px', wordBreak: 'break-all' }}>
-          {CARDAPIO_URL}
-        </p>
+          <p style={{ color: 'var(--text-2)', fontSize: '0.72rem', textAlign: 'center', wordBreak: 'break-all' }}>
+            {CARDAPIO_URL}
+          </p>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn-primary" style={{ flex: 1 }} onClick={handleDownload}>
-            <Download size={14} strokeWidth={2} style={{ marginRight: '6px' }} />
-            Baixar PNG
-          </button>
-          <button className="btn-ghost" style={{ flex: 1 }} onClick={handlePrint}>
-            <Printer size={14} strokeWidth={2} style={{ marginRight: '6px' }} />
-            Imprimir
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn-primary" style={{ flex: 1 }} onClick={handleDownload}>
+              <Download size={14} strokeWidth={2} style={{ marginRight: '6px' }} />
+              Baixar PNG
+            </button>
+            <button className="btn-ghost" style={{ flex: 1 }} onClick={handlePrint}>
+              <Printer size={14} strokeWidth={2} style={{ marginRight: '6px' }} />
+              Imprimir
+            </button>
+          </div>
         </div>
       </div>
     </div>
